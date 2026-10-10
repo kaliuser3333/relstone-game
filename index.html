@@ -3,187 +3,381 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Mines & More</title>
-    <!-- Это обязательный скрипт Telegram -->
+    <title>Relstone Game</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: var(--tg-theme-bg-color, #17212b);
-            --text-color: var(--tg-theme-text-color, #ffffff);
-            --button-color: var(--tg-theme-button-color, #5288c1);
-            --secondary-bg: var(--tg-theme-secondary-bg-color, #232e3c);
+            --bg: var(--tg-theme-bg-color, #17212b);
+            --text: var(--tg-theme-text-color, #ffffff);
+            --hint: var(--tg-theme-hint-color, #708499);
+            --btn: var(--tg-theme-button-color, #5288c1);
+            --btn-text: var(--tg-theme-button-text-color, #ffffff);
+            --card: var(--tg-theme-secondary-bg-color, #232e3c);
+            --green: #4ade80;
+            --red: #ef4444;
+            --blue: #3b82f6;
         }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg-color);
-            color: var(--text-color);
+            background: var(--bg);
+            color: var(--text);
             margin: 0;
-            padding: 20px;
+            padding: 16px;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
         }
-        .header { text-align: center; margin-bottom: 20px; }
-        .balance { font-size: 32px; font-weight: 800; color: #4ade80; }
-        .game-container { 
-            display: grid; 
-            grid-template-columns: repeat(5, 1fr); 
-            gap: 8px; 
-            width: 100%; 
-            max-width: 350px; 
-            margin: 20px 0;
+        .header {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .balance-label { font-size: 13px; color: var(--hint); }
+        .balance { font-size: 36px; font-weight: 800; color: var(--green); }
+
+        .tabs {
+            display: flex;
+            width: 100%;
+            max-width: 400px;
+            background: var(--card);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .tab.active { background: var(--btn); color: var(--btn-text); }
+
+        .screen { width: 100%; max-width: 400px; display: none; }
+        .screen.active { display: block; }
+
+        /* Мины */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
         }
         .tile {
             aspect-ratio: 1;
-            background: var(--secondary-bg);
-            border-radius: 8px;
+            background: var(--card);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 26px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: 0.15s;
             user-select: none;
         }
-        .tile:active { transform: scale(0.95); }
-        .tile.mine { background: #ef4444; }
-        .tile.diamond { background: #3b82f6; }
-        .controls { width: 100%; max-width: 350px; }
+        .tile:active { transform: scale(0.94); }
+        .tile.mine { background: var(--red); }
+        .tile.diamond { background: var(--blue); }
+
+        /* Больше/Меньше */
+        .card-display {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            font-size: 72px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+        .choice-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .choice {
+            flex: 1;
+            padding: 20px;
+            background: var(--card);
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.2s;
+        }
+        .choice:active { border-color: var(--btn); }
+
+        /* Ставки */
+        .bets {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .bet {
+            flex: 1;
+            padding: 12px;
+            background: var(--card);
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.2s;
+        }
+        .bet.active { border-color: var(--btn); }
+
         .btn {
             width: 100%;
-            padding: 15px;
+            padding: 18px;
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             font-size: 18px;
-            font-weight: 600;
-            background: var(--button-color);
-            color: white;
+            font-weight: 700;
+            background: var(--btn);
+            color: var(--btn-text);
             cursor: pointer;
-            margin-top: 10px;
+            transition: 0.2s;
         }
-        .btn:disabled { opacity: 0.5; }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn.green { background: var(--green); color: #000; }
+
+        .status {
+            text-align: center;
+            margin: 12px 0;
+            font-size: 15px;
+            min-height: 22px;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <div>Баланс</div>
+        <div class="balance-label">Баланс</div>
         <div class="balance" id="balance">$1000</div>
     </div>
 
-    <div class="game-container" id="grid">
-        <!-- Тут будут клетки -->
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('mines')">💣 Мины</div>
+        <div class="tab" onclick="switchTab('hl')">🎴 Больше/Меньше</div>
     </div>
 
-    <div class="controls">
-        <button class="btn" id="action-btn" onclick="handleAction()">Начать игру (Ставка $10)</button>
+    <!-- ЭКРАН: МИНЫ -->
+    <div class="screen active" id="screen-mines">
+        <div class="bets" id="mines-bets">
+            <div class="bet active" data-bet="10">$10</div>
+            <div class="bet" data-bet="50">$50</div>
+            <div class="bet" data-bet="100">$100</div>
+        </div>
+        <div class="grid" id="grid"></div>
+        <div class="status" id="mines-status"></div>
+        <button class="btn" id="mines-action" onclick="minesAction()">Начать игру</button>
+    </div>
+
+    <!-- ЭКРАН: БОЛЬШЕ/МЕНЬШЕ -->
+    <div class="screen" id="screen-hl">
+        <div class="bets" id="hl-bets">
+            <div class="bet active" data-bet="10">$10</div>
+            <div class="bet" data-bet="50">$50</div>
+            <div class="bet" data-bet="100">$100</div>
+        </div>
+        <div class="card-display" id="hl-card">?</div>
+        <div class="choice-row">
+            <div class="choice" onclick="hlGuess('less')">⬇️ Меньше</div>
+            <div class="choice" onclick="hlGuess('more')">⬆️ Больше</div>
+        </div>
+        <div class="status" id="hl-status"></div>
     </div>
 
     <script>
-        // Инициализация Telegram
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        // Данные пользователя
-        const user = tg.initDataUnsafe?.user;
-        if (user) {
-            console.log("User:", user.first_name);
-        }
+        // ===== БАЛАНС (localStorage) =====
+        let balance = parseInt(localStorage.getItem('balance')) || 1000;
 
-        // Состояние игры
-        let balance = 1000;
-        let gameActive = false;
-        let minesCount = 3;
-        let mines = [];
-        let revealed = [];
-        let betAmount = 10;
-
-        // DOM элементы
-        const balanceEl = document.getElementById('balance');
-        const gridEl = document.getElementById('grid');
-        const actionBtn = document.getElementById('action-btn');
-
-        // Функции
         function updateBalance() {
-            balanceEl.textContent = '$' + balance;
+            document.getElementById('balance').textContent = '$' + balance;
+            localStorage.setItem('balance', balance);
         }
 
-        function createGrid() {
-            gridEl.innerHTML = '';
+        // ===== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК =====
+        function switchTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('screen-' + name).classList.add('active');
+        }
+
+        // ===== ВЫБОР СТАВКИ =====
+        let minesBet = 10;
+        let hlBet = 10;
+
+        document.querySelectorAll('#mines-bets .bet').forEach(b => {
+            b.onclick = () => {
+                document.querySelectorAll('#mines-bets .bet').forEach(x => x.classList.remove('active'));
+                b.classList.add('active');
+                minesBet = parseInt(b.dataset.bet);
+            };
+        });
+
+        document.querySelectorAll('#hl-bets .bet').forEach(b => {
+            b.onclick = () => {
+                document.querySelectorAll('#hl-bets .bet').forEach(x => x.classList.remove('active'));
+                b.classList.add('active');
+                hlBet = parseInt(b.dataset.bet);
+            };
+        });
+
+        // ========================================
+        // ===== ИГРА 1: МИНЫ =====================
+        // ========================================
+        let minesActive = false;
+        let minesList = [];
+        let minesRevealed = [];
+        let minesCurrentWin = 0;
+        const MINES_COUNT = 3;
+
+        function buildGrid() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
             for (let i = 0; i < 25; i++) {
                 const tile = document.createElement('div');
                 tile.className = 'tile';
                 tile.dataset.index = i;
-                tile.onclick = () => handleTileClick(i);
-                gridEl.appendChild(tile);
+                tile.onclick = () => clickTile(i);
+                grid.appendChild(tile);
             }
         }
 
-        function startGame() {
-            if (balance < betAmount) {
-                tg.showAlert("Недостаточно средств!");
+        function minesAction() {
+            if (!minesActive) startMines();
+            else cashoutMines();
+        }
+
+        function startMines() {
+            if (balance < minesBet) {
+                setStatus('mines', '❌ Недостаточно средств');
                 return;
             }
-            balance -= betAmount;
+            balance -= minesBet;
             updateBalance();
-            
-            gameActive = true;
-            revealed = [];
-            mines = [];
-            // Генерируем мины
-            while (mines.length < minesCount) {
+
+            minesActive = true;
+            minesRevealed = [];
+            minesCurrentWin = minesBet;
+            minesList = [];
+            while (minesList.length < MINES_COUNT) {
                 const r = Math.floor(Math.random() * 25);
-                if (!mines.includes(r)) mines.push(r);
+                if (!minesList.includes(r)) minesList.push(r);
             }
-            
-            createGrid();
-            actionBtn.textContent = "Забрать выигрыш ($" + betAmount + ")";
-            actionBtn.disabled = false;
+            buildGrid();
+            setStatus('mines', '');
+            document.getElementById('mines-action').textContent = '💰 Забрать $' + minesCurrentWin;
+            document.getElementById('mines-action').classList.add('green');
         }
 
-        function handleTileClick(index) {
-            if (!gameActive || revealed.includes(index)) return;
-            
-            revealed.push(index);
-            const tile = document.querySelector(`.tile[data-index="${index}"]`);
-            
-            if (mines.includes(index)) {
+        function clickTile(i) {
+            if (!minesActive || minesRevealed.includes(i)) return;
+            minesRevealed.push(i);
+            const tile = document.querySelector(`.tile[data-index="${i}"]`);
+
+            if (minesList.includes(i)) {
                 // Проигрыш
                 tile.classList.add('mine');
                 tile.textContent = '💣';
-                gameActive = false;
-                actionBtn.disabled = true;
-                actionBtn.textContent = "Игра окончена";
+                minesActive = false;
+                // Показываем все мины
+                minesList.forEach(m => {
+                    const t = document.querySelector(`.tile[data-index="${m}"]`);
+                    if (t) { t.classList.add('mine'); t.textContent = '💣'; }
+                });
+                setStatus('mines', `💥 Проигрыш! Потеряно $${minesBet}`);
+                document.getElementById('mines-action').textContent = 'Начать игру';
+                document.getElementById('mines-action').classList.remove('green');
                 tg.HapticFeedback.impactOccurred('heavy');
             } else {
                 // Выигрыш
                 tile.classList.add('diamond');
                 tile.textContent = '💎';
-                // Увеличиваем потенциальный выигрыш
-                betAmount = Math.floor(betAmount * 1.2);
-                actionBtn.textContent = "Забрать выигрыш ($" + betAmount + ")";
+                minesCurrentWin = Math.floor(minesCurrentWin * 1.3);
+                document.getElementById('mines-action').textContent = '💰 Забрать $' + minesCurrentWin;
                 tg.HapticFeedback.impactOccurred('light');
             }
         }
 
-        function handleAction() {
-            if (!gameActive) {
-                startGame();
-            } else {
-                // Забрать выигрыш
-                balance += betAmount;
-                updateBalance();
-                gameActive = false;
-                actionBtn.textContent = "Начать игру (Ставка $10)";
-                betAmount = 10;
-                tg.showAlert(`Вы забрали $${betAmount - 10}!`); // Чистый выигрыш
-            }
+        function cashoutMines() {
+            if (!minesActive) return;
+            balance += minesCurrentWin;
+            updateBalance();
+            setStatus('mines', `✅ Выигрыш $${minesCurrentWin}!`);
+            minesActive = false;
+            document.getElementById('mines-action').textContent = 'Начать игру';
+            document.getElementById('mines-action').classList.remove('green');
         }
 
-        // Инициализация
-        createGrid();
+        function setStatus(game, text) {
+            document.getElementById(game + '-status').textContent = text;
+        }
+
+        // ========================================
+        // ===== ИГРА 2: БОЛЬШЕ/МЕНЬШЕ ============
+        // ========================================
+        let hlActive = false;
+        let hlCurrent = 0;
+
+        function hlGuess(choice) {
+            if (!hlActive) {
+                // Первая ставка
+                if (balance < hlBet) {
+                    setStatus('hl', '❌ Недостаточно средств');
+                    return;
+                }
+                balance -= hlBet;
+                updateBalance();
+                hlActive = true;
+                hlCurrent = Math.floor(Math.random() * 10) + 1; // 1-10
+                document.getElementById('hl-card').textContent = hlCurrent;
+                setStatus('hl', `Ставка $${hlBet}. Угадай следующую карту!`);
+                return;
+            }
+
+            // Угадываем
+            const next = Math.floor(Math.random() * 10) + 1;
+            document.getElementById('hl-card').textContent = next;
+
+            const isMore = next > hlCurrent;
+            const isLess = next < hlCurrent;
+            const won = (choice === 'more' && isMore) || (choice === 'less' && isLess);
+
+            if (won) {
+                const win = hlBet * 2;
+                balance += win;
+                updateBalance();
+                setStatus('hl', `🎉 Угадал! +$${win - hlBet}`);
+                tg.HapticFeedback.notificationOccurred('success');
+            } else {
+                setStatus('hl', `💀 Не угадал! Потеряно $${hlBet}`);
+                tg.HapticFeedback.notificationOccurred('error');
+            }
+
+            hlActive = false;
+            hlCurrent = 0;
+            setTimeout(() => {
+                document.getElementById('hl-card').textContent = '?';
+            }, 1500);
+        }
+
+        // ===== ИНИЦИАЛИЗАЦИЯ =====
+        updateBalance();
+        buildGrid();
     </script>
 </body>
 </html>
